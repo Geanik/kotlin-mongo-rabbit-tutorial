@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+infra/container-data
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/

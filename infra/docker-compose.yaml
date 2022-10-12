@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:5.0
+    container_name: 'mongodb'
+    ports:
+      - 27017:27017
+    volumes:
+      - ./container-data/mongodb-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./container-data/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./container-data/rabbitmq/log/:/var/log/rabbitmq
