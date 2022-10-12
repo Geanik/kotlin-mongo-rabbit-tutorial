@@ -1,0 +1,3 @@
+package io.geanik.kotlin_mongo_rabbit_tutorial.backend.data
+
+interface BackendDataPackage
