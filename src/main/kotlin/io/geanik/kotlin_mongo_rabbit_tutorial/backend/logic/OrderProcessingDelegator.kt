@@ -1,5 +1,6 @@
 package io.geanik.kotlin_mongo_rabbit_tutorial.backend.logic
 
+import com.google.gson.Gson
 import com.rabbitmq.client.ConnectionFactory
 import io.geanik.kotlin_mongo_rabbit_tutorial.backend.model.Order
 import org.springframework.stereotype.Service
@@ -15,6 +16,7 @@ interface OrderProcessingDelegator {
 class OrderProcessingAmqpDelegator : OrderProcessingDelegator {
 
     private val factory = ConnectionFactory()
+    private val gson = Gson()
 
     override fun delegateProcessing(order: Order) {
         factory.newConnection(AMQP_CONNECTION_STRING).use { connection ->
@@ -25,7 +27,7 @@ class OrderProcessingAmqpDelegator : OrderProcessingDelegator {
                     "",
                     QUEUE_NAME,
                     null,
-                    order.toString().toByteArray(StandardCharsets.UTF_8)
+                    gson.toJson(order).toByteArray(StandardCharsets.UTF_8)
                 )
             }
         }
