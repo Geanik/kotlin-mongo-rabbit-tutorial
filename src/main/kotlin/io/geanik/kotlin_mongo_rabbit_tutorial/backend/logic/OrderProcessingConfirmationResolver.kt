@@ -1,4 +1,4 @@
-package io.geanik.kotlin_mongo_rabbit_tutorial.processor.logic
+package io.geanik.kotlin_mongo_rabbit_tutorial.backend.logic
 
 import com.google.gson.Gson
 import com.rabbitmq.client.CancelCallback
@@ -11,19 +11,19 @@ import org.springframework.stereotype.Service
 import java.nio.charset.StandardCharsets
 import javax.annotation.PostConstruct
 
-interface OrderProcessor {
+interface OrderProcessingConfirmationResolver {
 
-    fun processOrder(order: Order)
+    fun resolveConfirmation(order: Order)
 
 }
 
 @Service
-class OrderProcessorImpl(val confirmer: OrderProcessingConfirmer) : OrderProcessor {
+class OrderProcessingConfirmationResolverImpl : OrderProcessingConfirmationResolver {
 
     private val factory = ConnectionFactory()
     private val connection = factory.newConnection(AMQP_CONNECTION_STRING)
     private val channel = connection.createChannel()
-    private val consumerTag = "OrderProcessor"
+    private val consumerTag = "BackendApplication"
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val gson = Gson()
@@ -35,8 +35,8 @@ class OrderProcessorImpl(val confirmer: OrderProcessingConfirmer) : OrderProcess
         val deliverCallback = DeliverCallback { consumerTag: String?, delivery: Delivery ->
             val message = String(delivery.body, StandardCharsets.UTF_8)
             val order = gson.fromJson(message, Order::class.java)
-            logger.info("[$consumerTag] Received message: '$order'")
-            processOrder(order)
+            logger.info("[$consumerTag] Received confirmation: '$order'")
+            resolveConfirmation(order)
         }
         val cancelCallback = CancelCallback { consumerTag: String? ->
             logger.info("[$consumerTag] was canceled")
@@ -45,15 +45,13 @@ class OrderProcessorImpl(val confirmer: OrderProcessingConfirmer) : OrderProcess
         channel.basicConsume(QUEUE_NAME, true, consumerTag, deliverCallback, cancelCallback)
     }
 
-    override fun processOrder(order: Order) {
-        Thread.sleep(order.durationInSeconds.toLong() * 1000)
-        confirmer.confirmOrderProcessing(order)
-        logger.info("Order ${order.id} processed!")
+    override fun resolveConfirmation(order: Order) {
+        // TODO: save to DB
     }
 
     companion object {
         private const val AMQP_CONNECTION_STRING = "amqp://guest:guest@localhost:5672/"
-        private const val QUEUE_NAME = "orders"
+        private const val QUEUE_NAME = "processing-confirmations"
     }
 
 }
